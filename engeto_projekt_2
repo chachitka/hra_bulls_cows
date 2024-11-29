@@ -1,0 +1,176 @@
+"""
+projekt_2.py: Druhý projekt do Engeto Online Python Akademie
+autor: Lenka Krčmáriková
+email: l.krcmarikova@seznam.cz
+discord: lenka_34840
+"""
+
+import random
+import time
+
+ODDELOVAC = "=" * 52
+DELKA_CISLA = 4
+MAX_POKUSU = 15
+
+def generuj_tajne_cislo() -> str:
+    """
+    Generuje náhodné čtyřmístné číslo bez opakujících se číslic.
+    
+    Returns:
+        str: Čtyřmístné číslo jako string
+    """
+    prvni_cifra = list(range(1, 10))  
+    dalsi_cifry = list(range(10))  
+    
+    tajne_cislo = [random.choice(prvni_cifra)]
+    
+    while len(tajne_cislo) < DELKA_CISLA:
+        nove_cislo = random.choice(dalsi_cifry)
+        if nove_cislo not in tajne_cislo:  
+            tajne_cislo.append(nove_cislo)
+    
+    vysledne_cislo = "".join(str(cislo) for cislo in tajne_cislo)
+    return vysledne_cislo
+
+def zkontroluj_cislo(cislo: str) -> bool:
+    """
+    Kontroluje validitu zadaného čísla.
+    
+    Args:
+        cislo (str): Vstupní číslo ke kontrole
+        
+    Returns:
+        bool: True pokud je číslo validní, False pokud není
+    """
+    if len(cislo) != DELKA_CISLA:
+        print(f"Neplatný tip. Číslo musí mít přesně {DELKA_CISLA} číslice.")
+        return False
+    if not cislo.isdigit():
+        print(f"Neplatný tip. Zadejte pouze čísla.")
+        return False
+    if cislo.startswith("0"):
+        print(f"Neplatný tip. Číslo nesmí začínat nulou.")
+        return False
+    if len(set(cislo)) != DELKA_CISLA:
+        print(f"Neplatný tip. Číslo nesmí mít opakující se číslice.")
+        return False
+    return True
+
+def spocitej_bulls_cows(
+    tajne_cislo: str, 
+    cislo: str
+) -> tuple[int, int]:
+    """
+    Počítá počet bulls a cows pro zadaný tip.
+    
+    Args:
+        tajne_cislo (str): Tajné číslo k uhádnutí
+        cislo (str): Tip hráče
+        
+    Returns:
+        tuple[int, int]: Počet bulls a cows (v tomto pořadí)
+    """
+    bulls = 0
+    cows = 0
+    
+    for i in range(DELKA_CISLA):
+        if cislo[i] == tajne_cislo[i]:
+            bulls += 1
+    
+    # Počet společných číslic bez shody pozice
+    cows = len(set(cislo) & set(tajne_cislo)) - bulls
+            
+    return bulls, cows
+
+def hrej_hru(tajne_cislo: str = None):
+    """
+    Spouští hlavní smyčku hry Bulls & Cows.
+
+    Args:
+        tajne_cislo (str, optional): 
+            Tajné číslo pro testovací účely.            
+            Pokud není zadáno, generuje se náhodně.
+    """
+
+    while True:
+        print("\n" + ODDELOVAC)
+        print("\n")
+        
+        tajne = tajne_cislo or generuj_tajne_cislo()
+        pocet_pokusu = 0
+    
+        print(f"{'** Hra BULLS & COWS **'.center(52)}")
+
+        print(ODDELOVAC)
+
+        print(f"Hádej čtyřmístné číslo bez opakujících se číslic.")
+        print(f"Máš {MAX_POKUSU} pokusů.")
+        print(f"Pro ukončení hry zadej 'x'.")
+
+        print(ODDELOVAC)
+
+        print(f"Jdeme na to?! Zadej svůj tip.")
+
+        print(ODDELOVAC)
+
+        cas_zacatku = time.time()
+
+        while pocet_pokusu < MAX_POKUSU:
+            zbyvajici_pokusy = MAX_POKUSU - pocet_pokusu
+            print(f"\nZbývající počet pokusů: {zbyvajici_pokusy}")
+    
+            tip = input(">>>: ")
+    
+            if tip.strip().lower() == 'x':
+                print(f"Hra ukončena. Tajné číslo bylo {tajne}.")
+                break
+    
+            if not zkontroluj_cislo(tip):
+                continue
+    
+            pocet_pokusu += 1
+    
+            bulls, cows = spocitej_bulls_cows(tajne, tip)
+            print(
+                f"Bulls: {str(bulls).rjust(2)}, "
+                f"Cows: {str(cows).rjust(2)}"
+            )
+    
+            print(ODDELOVAC)
+    
+            if bulls == DELKA_CISLA:
+                cas_konce = time.time()
+                celkovy_cas = cas_konce - cas_zacatku
+                minuty = int(celkovy_cas // 60)
+                sekundy = int(celkovy_cas % 60)
+        
+                print(
+                    f"\nSkvělé, tvé logické myšlení je výborné!\n" 
+                    f"Uhádl/a jsi číslo {tajne} na {pocet_pokusu} pokusů!"
+                )
+
+                if minuty:
+                    print(f"Trvalo ti to {minuty} minut a {sekundy} sekund!")
+                else:
+                    print(f"Trvalo ti to {sekundy} sekund!")
+                break
+
+        else:
+            print(
+                f"\nBohužel jsi vyčerpal/a všechny pokusy.\n"
+                f"Tajné číslo bylo {tajne}."
+            )
+
+        print(ODDELOVAC)
+
+        while True:
+            restart = input("\nChceš hrát znovu? (ano/ne): ").strip().lower()
+            if restart in ["ano", "ne"]:
+                break
+            print(f"Neplatná volba. Zadej 'ano' nebo 'ne'.")
+    
+        if restart == "ne":
+            break
+            
+if __name__ == "__main__":
+    hrej_hru()   
